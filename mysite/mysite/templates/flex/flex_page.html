@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% load wagtailcore_tags %}
+
+{% block content %}
+
+<br><br><br><br>
+<center>
+  <h1>Meet the Team</h1>
+  <br>
+
+      {% for block in page.content %} {% include_block block %}   
+        {% endfor %}
+
+  <br>
+</center>
+
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% load wagtailcore_tags %}
+
+{% block content %}
+<br>
+
+  <div>
+      {{ self.subtitle }}
+  </div>
+  <div class="container mb-5 mt-5">
+    <div class="row">
+        <div class="col" style="padding-right: 30px;">
+          <br><br>
+          <h1>First Defence Screening</h1>
+          <h5 style="font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif; font-weight: lighter;">The Mammo Researchers</h5>
+          <hr>
+          <p>
+            This web-app developed by The Mammo Researchers automates the classification of normal, benign and cancerous growths 
+            identified in breast mammograms, as well as segments the area/growth of concern. It’s intended purpose is for use of 
+            Medical professionals to reduce additional screening of low-risk patients.
+          </p>
+          <p>
+            The functionalities of this app includes uploading .jpg or .png images of mammograms and
+            receiving immediate image segmentation results.
+          </p>
+          <p><a class="nav-link" href="/about-page" style= "color:#18A0FB">Meet the Team</a></p>
+        </div>
+
+        <div class="col mb-5 mt-5" style="padding-left: 30px;">
+          <br>
+          <div class="card" style="padding:30px">
+            <h3>Get Started</h3>
+            <p>
+              This app is intended for Medical Professionals (nurses, radiologists). Please follow the steps below to get started: 
+              <br>
+              <br> <b>1.</b> Log in or Register 
+              <br> <b>2.</b> Upload your mammogram images against our model to be evaluated 
+              <br>
+              
+              <center>
+                <div class="container">
+                  <div class="row">
+                   <!-- <ul class="navbar-nav mr-5"></ul> gap between buttons -->
+                    
+                    <form class="login" action="{% url 'account_signup' %}">
+                      <button class="btn btn-primary" type="submit">Register</button>
+                    </form>  
+                    
+                    <ul class="navbar-nav mr-5"></ul><!-- gap between buttons -->
+
+                    <form class="login" action="{% url 'account_login' %}">
+                      <button class="btn btn-primary" type="submit">Log in</button>
+                    </form>    
+                  </div>
+                </div>
+              </center> 
+            </p>        
+          </div>
+               
+        </div>
+    </div>
+</div>
+
+{% endblock %}

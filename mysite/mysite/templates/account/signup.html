@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% load i18n %}
+
+{% block title %}{% trans "Register/Login" %}{% endblock %}
+
+{% block content %}
+<div class="container mb-5 mt-5">
+    <div class="row">
+        <div class="col">
+            <br>
+            <br>
+            <br>
+            
+            <div class="card" style="padding: 30px;">
+                <h1>{% trans "First Defence Screening" %}</h1>
+                <h2>Register</h2>
+                <br>
+
+                <!--
+                    <p>{% blocktrans %}Already have an account? Then please <a href="{{ login_url }}">sign in</a>.{% endblocktrans %}</p>
+                -->
+
+                <form class="signup" id="signup_form" method="post" action="{% url 'account_signup' %}">
+                {% csrf_token %}
+                {{ form.as_p }}
+                {% if redirect_field_value %}
+                <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+                {% endif %}
+                <button class="btn btn-primary" type="submit">{% trans "Register" %} &raquo;</button>
+                </form>
+            </div>
+        </div>
+        <div class="col">
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <br>
+            <h5> The Mammo Researchers</h5>
+
+            <p>This web-app automates the classification of normal, benign and cancerous growths identified in breast mammograms, 
+                and  segments the areas/growths of concern. It’s intended purpose is for use of Medical professionals to reduce 
+                additional screening of low-risk patients.</p>
+
+                <p>
+                    <br>
+                    {% blocktrans %} 
+                    <h4>Already have an account?</h4> 
+                    Follow <a href="{{ login_url }}">this link</a> to sign in.{% endblocktrans %}
+                
+                </p>
+        </div>
+        
+    </div>
+</div>  
+
+{% endblock %}

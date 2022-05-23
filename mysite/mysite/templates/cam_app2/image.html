@@ -1,0 +1,268 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags %}
+{% block extra_css %}
+    <style>
+      body{
+        padding-top: 100px;
+      }
+    </style>
+{% endblock %}
+{% block content %}
+{% load static wagtailcore_tags wagtailimages_tags %}
+
+
+<div class = container> 
+  <div class="row">
+    <!-- Left side of screen -->
+    <div class="col">
+
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+      <div class="card" style="width:85%; padding-left: 20%; padding-top:15px; padding-right: 20%;">
+        <div class="card" style="width:100%;">
+          <br><br><br><br><br><br> <!-- Images are not working: guessing its because of the uploading of images etc. in models.py-->
+          <img src="media\images\dp1536x1536.max-165x165.jpg"alt="Profile Picture" style="width:100%">
+          <br><br><br><br><br><br>
+        </div>
+        
+        <center>
+          {% csrf_token %}
+          <h1>Dr. {{request.user.first_name}} {{request.user.last_name}}</h1>
+          <p></p>
+          <p>University of Technology Sydney</p>
+        </center>
+        <br><br>
+
+        
+      </div>
+
+    <!-- This below is to ensure that the .vertical line is not going through the footer-->
+    <div>
+      <br>
+      <br>
+      <br>
+      <br>
+      <br>
+      <br>
+      <br>
+      <br>
+      <br>
+      <br>
+      <br>
+      <br>
+      <br>
+      <br>
+      <br>
+      <br>
+      <br>
+    </div>
+    
+    </div>
+
+    <div class = "vertical"></div>
+
+    <!-- Right side of screen -->
+    <div class="col">
+      <center>
+        <div class="card">
+          <div style="font-family: Verdana, Geneva, Tahoma, sans-serif;font-size: x-large; padding-top: 15px;"> {{ page.name_title }}</div>       
+          <div class="container-fluid" style="height:100%; display: block; overflow: auto;">
+            <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js'></script>
+            <!--Style of the page-->
+            <style>
+              .file-drop-area {
+                  position: relative;
+                  display: flex;
+                  align-items: center;
+                  max-width: 100%;
+                  padding-left: 0px;
+                  padding-right: 25px;
+                  padding-top: 25px;
+                  padding-bottom: 25px;
+                  border: 1px dashed rgba(255, 255, 255, 0.4);
+                  border-radius: 3px;
+                  transition: .2s
+                }
+
+              .choose-file-button {
+                  flex-shrink: 0;
+                  /* background-color: rgba(255, 255, 255, 0.04); */
+                  border: 1px solid rgba(255, 255, 255, 0.1);
+                  border-radius: 3px;
+                  padding: 8px 15px;
+                  margin-right: 10px;
+                  font-size: 12px;
+                  text-transform: uppercase
+                }
+
+              .file-message {
+                  font-size: small;
+                  font-weight: 300;
+                  line-height: 1.4;
+                  white-space: nowrap;
+                  overflow: hidden;
+                  text-overflow: ellipsis
+                }
+
+              .file-input {
+                  position: absolute;
+                  left: 0;
+                  top: 0;
+                  height: 100%;
+                  widows: 100%;
+                  cursor: pointer;
+                  opacity: 0
+                }
+
+              .vertical {
+                  border-left: 1px solid #e0e0e0;
+                  height: 120%;
+                  position:absolute;
+                  left: 48%;
+                }
+            </style>
+
+            <script type="text/javascript">
+              $(document).on('change', '.file-input', function() {
+                  var filesCount = $(this)[0].files.length;
+                  var textbox = $(this).prev();
+                  if (filesCount === 1) {
+                  var fileName = $(this).val().split('\\').pop();
+                  textbox.text(fileName);
+                  } else {
+                  textbox.text(filesCount + ' files selected');
+                  }
+                  if (typeof (FileReader) != "undefined") {
+                  var dvPreview = $("#divImageMediaPreview");
+                  dvPreview.html("");
+                  var index =0;
+                  $($(this)[0].files).each(function () {
+                  var file = $(this);
+                  var reader = new FileReader();
+                  reader.onload = function (e) {
+                  var img = $("<img />");
+                  img.attr("style", "width: 150px; height:100px; padding: 10px");
+                  img.attr("src", e.target.result);
+                  img.attr("name", name+index);
+                  index=index+1;
+                  dvPreview.append(img);
+                  }
+                  reader.readAsDataURL(file[0]);
+                  });
+                  } else {
+                  alert("This browser does not support HTML5 FileReader.");
+                  }
+                  });
+            </script>
+
+            <!-- This is the Choose Files & Upload functionalities-->
+            <form class="input-group mb-3" method="POST" enctype="multipart/form-data" id="form1">
+                  <div class="file-drop-area">
+                    <span class="choose-file-button btn-primary">Choose Files</span> 
+                    <span class="file-message">or drag and drop files here</span> 
+                    <input type="file" name="file_data" class="file-input" accept=".jfif,.jpg,.jpeg,.png,.gif" multiple> 
+                  </div>
+                  {% csrf_token %} <!--using this, CSRF attacks can be avoided, thereby ensuring the security of post requests from a user to the server.-->
+
+                  <div class="container">
+                    <div class="row">
+                        <button class="choose-file-button btn-primary" type="submit" id="inputGroupFileAddon04">Upload</button>
+                    </div>
+                  </div>
+                  <br>
+                  
+                  <!-- This is the list of files selected after uploading-->
+                  List of uploaded file/s:
+                  <ul>
+                  {% for my_file1 in my_uploaded_file_names %}
+                    <li class="text-white">
+                      <a class="text-black" href="{{my_file1}}" target="_blank" style="text-decoration:none; font-size:xx-small; text-align: left;">{{my_file1}}</a>
+                    </li>
+                  {% endfor %}
+                  </ul>
+            </form>  
+            
+        </div>
+      </center>   
+        <br><br>
+   
+          <!-- This is the start button for the deep learning model-->
+          <div>
+            <form method="POST" id="start">
+              {% csrf_token %}
+              <button class="choose-file-button btn-primary" type="submit" name="start" id="start">Start</button>
+            </form>
+          </div>
+          <!-- This is the Raw and Results images section-->
+          <div style="margin-bottom:20px;">
+              <ul class="nav nav-tabs" id="myTab">
+                <li class="nav-item">
+                  <a class="nav-link active" id="image-tab" data-toggle="tab" data-target="#home"  aria-controls="home">Raw Mammogram</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" id="result-tab" data-toggle="tab" data-target="#profile1" aria-controls="profile1">Results</a>
+                </li>
+              </ul>
+    
+              <div class="tab-content" id="myTabContent" style=" ">
+                <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="image-tab">
+                  <br>
+                  <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
+                    <ol class="carousel-indicators">
+                      {% for my_file in my_uploaded_file_names %}
+                            <li data-target="#carouselExampleIndicators" data-slide-to={{forloop.counter0}} class="{% if forloop.first %} active {% endif %}" aria-current="true" aria-label={{forloop.counter}}></li>
+                      {% endfor %}
+                    </ol>
+                    <div class="carousel-inner">
+                      {% for my_file1 in my_uploaded_file_names %}
+                          <div class="carousel-item {% if forloop.first %} active {% endif %} ">
+                            <a href="{{my_file1}}" target="_blank"><img src="{{my_file1}}" class="d-block w-100"></a>
+                          <!-- <img src="{{my_file1}}" class="d-block w-100"> -->
+                          </div>
+                      {% endfor %}
+                    </div>
+                    <a class="carousel-control-prev" href="#carouselExampleIndicators" role="button" data-slide="prev">
+                      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                      <span class="sr-only">Previous</span>
+                    </a>
+                    <a class="carousel-control-next" href="#carouselExampleIndicators" role="button" data-slide="next">
+                      <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                      <span class="sr-only">Next</span>
+                    </a>
+                  </div>
+                </div>
+    
+                <div class="tab-pane fade" id="profile1" role="tabpanel" aria-labelledby="result-tab">
+                  
+                  <!-- This is result images. -->
+                  <div id="carouselExampleIndicators2" class="carousel slide" data-ride="carousel">
+                    <ol class="carousel-indicators">
+                      {% for my_file2 in my_result_file_names %}
+                            <li data-target="#carouselExampleIndicators2" data-slide-to={{forloop.counter0}} class="{% if forloop.first %} active {% endif %}" aria-current="true" aria-label={{forloop.counter}}></li>
+                      {% endfor %}
+                    </ol>
+                    <div class="carousel-inner">
+                      {% for my_file3 in my_result_file_names %}
+                          <div class="carousel-item {% if forloop.first %} active {% endif %} ">
+                            <a href="{{my_file3}}" target="_blank"><img src="{{my_file3}}" class="d-block w-100"></a>
+                          </div>
+                      {% endfor %}
+                    </div>
+                    <a class="carousel-control-prev" href="#carouselExampleIndicators2" role="button" data-slide="prev">
+                      <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                      <span class="sr-only">Previous</span>
+                    </a>
+                    <a class="carousel-control-next" href="#carouselExampleIndicators2" role="button" data-slide="next">
+                      <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                      <span class="sr-only">Next</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+    </div>
+     
+  </div>
+  <br><br>
+</div>
+
+{% endblock %}
