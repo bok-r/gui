@@ -21,7 +21,11 @@ from pathlib import Path
 
 from streams import blocks
 
-import sqlite3, datetime, os, uuid, glob
+import sqlite3, datetime, os, uuid, glob, cv2
+from matplotlib import pyplot as plt
+from tensorflow import keras
+import numpy as np
+from PIL import Image
 
 str_uuid = uuid.uuid4()  # The UUID for image uploading
 
@@ -31,6 +35,52 @@ str_uuid = uuid.uuid4()  # The UUID for image uploading
 #get mask
 #img2=img+mask
 #return img2
+
+# =========CUSTOM CODE BELOW=========
+model_unet = keras.models.load_model(f'{settings.MEDIA_ROOT}/model/1000epochs_unet.h5', compile=False)
+
+def inference(model):
+  #Read image
+ arr = []
+
+ for ind, i in enumerate(glob.glob(f'{settings.MEDIA_ROOT}/uploadedPics/*.jpg')):
+ 
+    img = cv2.imread(i, cv2.IMREAD_COLOR)
+    img = cv2.resize(img, (224,224))
+    img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+        #test_images.append(img)
+    
+    #Extract original image and image for processing
+    #test_img = test_images[0]
+    test_img_normal = img[:,:,:] #(224,224)
+    test_img_input = np.expand_dims(img, 0) #(1, 224,224,1)
+    #plt.imshow(test_img_normal)
+    #plt.show()
+    
+    #Get predicted mask
+    prediction_img = (model.predict(test_img_input)[0,:,:,0] > 0.2).astype(np.uint8) #(1,224,224,3)
+    #weee = cv2.imread(prediction_img, cv2.IMREAD_GRAYSCALE)
+    #cv2.imshow('hi', weee)
+    #cv2.waitKey(0)
+
+    prediction1 = np.expand_dims(prediction_img, 2) #saving in a fomrat that can be overlapped in cv2.addWeighted
+    print(np.shape(prediction_img))
+    print(np.shape(prediction1))
+    #plt.imshow(prediction1, cmap='gray')
+    #plt.show()
+    
+    plt.imsave(f'{settings.MEDIA_ROOT}/Result/result{ind}.jpg', prediction_img, cmap='gray') 
+
+    img = test_img_normal
+    # Import and convert the mask from binary to RGB
+    mask = Image.open(f'{settings.MEDIA_ROOT}/Result/result{ind}.jpg').convert('RGB')
+    overlay = cv2.addWeighted(np.array(img),0.8,np.array(mask),1,0)  
+    plt.imsave(f'{settings.MEDIA_ROOT}/Overlay/overlay{ind}.jpg', overlay, cmap='gray') 
+
+    arr.append(f"{settings.MEDIA_URL}Overlay/overlay{ind}.jpg")
+
+ return test_img_normal, prediction1, arr
+# =====================================
 
 def reset():
     files_result = glob.glob(str(Path(f'{settings.MEDIA_ROOT}/Result/*.*')), recursive=True)
@@ -77,33 +127,26 @@ class ImagePage(Page):
         ),
     ]
 
-
     def reset_context(self, request):
         context = super().get_context(request)
         context["my_uploaded_file_names"]= []
         context["my_result_file_names"]=[]
         context["my_staticSet_names"]= []
-        context["my_lines"]: []
+        context["my_lines"] = []
         return context
 
     def serve(self, request):
 
         context = self.reset_context(request)
-        reset()
+        #reset()
         emptyButtonFlag = False
         if request.POST.get('start')=="":
             print(request.POST.get('start'))
             print("Start selected")
-            #put your detection code here (almost same as in camera.py)
-            # use inf func
-            #with open(Path(f'{settings.MEDIA_ROOT}/uploadedPics/img_list.txt'), 'r') as f:
-            #        lines = f.readlines()        
-            #p = lines[0].split('\n')[0]
-            # img = cv2.imread(p)
-            # output = func(img)
-            # save output to result - cv2.imwrite(), also write path in result.txt
-            # context["my_result_file_names"] change to new file path
+            og_test_img, predicted_mask, output_arr = inference(model_unet)
             
+            context["my_result_file_names"] = output_arr
+            context["my_uploaded_file_names"] = open(Path(f'{settings.MEDIA_ROOT}/uploadedPics/img_list.txt'), 'r').readlines()
             return render(request, "cam_app2/image.html", context)
 
         if (request.FILES and emptyButtonFlag == False):
@@ -112,20 +155,19 @@ class ImagePage(Page):
             self.reset_context(request)
             context["my_uploaded_file_names"] = []
             for file_obj in request.FILES.getlist("file_data"):
-                uuidStr = uuid.uuid4()
-                filename = f"{file_obj.name.split('.')[0]}_{uuidStr}.{file_obj.name.split('.')[-1]}"
+                #uuidStr = uuid.uuid4()
+                #filename = f"{file_obj.name.split('.')[0]}_{uuidStr}.{file_obj.name.split('.')[-1]}"
+                filename = f"{file_obj.name}"
                 with default_storage.open(Path(f"uploadedPics/{filename}"), 'wb+') as destination:
                     for chunk in file_obj.chunks():
                         destination.write(chunk)
-                filename = Path(f"{settings.MEDIA_URL}uploadedPics/{file_obj.name.split('.')[0]}_{uuidStr}.{file_obj.name.split('.')[-1]}")
+                #filename = Path(f"{settings.MEDIA_URL}uploadedPics/{file_obj.name.split('.')[0]}_{uuidStr}.{file_obj.name.split('.')[-1]}")
+                filename = Path(f"{settings.MEDIA_URL}uploadedPics/{file_obj.name}")
                 with open(Path(f'{settings.MEDIA_ROOT}/uploadedPics/img_list.txt'), 'a') as f:
                     f.write(str(filename))
                     f.write("\n")
 
                 context["my_uploaded_file_names"].append(str(f'{str(filename)}'))
             return render(request, "cam_app2/image.html", context)
-
-
-
 
         return render(request, "cam_app2/image.html", {'page': self})
